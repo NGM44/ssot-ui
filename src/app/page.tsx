@@ -1,460 +1,211 @@
+// "use client";
+// import Link from "next/link";
+// import React from "react";
+
+// const page = () => {
+//   return (
+//     <div>
+//       <style jsx global>{`
+//         @keyframes fadeIn {
+//           from {
+//             opacity: 0;
+//             transform: translateY(-20px);
+//           }
+//           to {
+//             opacity: 1;
+//             transform: translateY(0);
+//           }
+//         }
+//         @keyframes float {
+//           0% {
+//             transform: translateY(0px);
+//           }
+//           50% {
+//             transform: translateY(-10px);
+//           }
+//           100% {
+//             transform: translateY(0px);
+//           }
+//         }
+//         @keyframes pulse {
+//           0% {
+//             transform: scale(1);
+//           }
+//           50% {
+//             transform: scale(1.05);
+//           }
+//           100% {
+//             transform: scale(1);
+//           }
+//         }
+//         @keyframes flip {
+//           0% {
+//             transform: perspective(400px) rotateY(0);
+//           }
+//           100% {
+//             transform: perspective(400px) rotateY(360deg);
+//           }
+//         }
+//         @keyframes victory {
+//           0% {
+//             transform: scale(0);
+//             opacity: 0;
+//           }
+//           50% {
+//             transform: scale(1.1);
+//             opacity: 1;
+//           }
+//           100% {
+//             transform: scale(1);
+//             opacity: 1;
+//           }
+//         }
+//         @keyframes fall {
+//           0% {
+//             transform: translateY(-100vh) rotate(0deg);
+//             opacity: 1;
+//           }
+//           100% {
+//             transform: translateY(100vh) rotate(360deg);
+//             opacity: 0;
+//           }
+//         }
+//         .fade-in {
+//           animation: fadeIn 1s ease-out;
+//         }
+//         .float {
+//           animation: float 3s ease-in-out infinite;
+//         }
+//         .pulse {
+//           animation: pulse 2s infinite;
+//         }
+//         .flip {
+//           animation: flip 0.6s ease-in-out;
+//         }
+//         .victory-animation {
+//           animation: victory 0.5s ease-in-out;
+//         }
+//         .confetti {
+//           position: fixed;
+//           width: 10px;
+//           height: 10px;
+//           animation: fall 4s linear infinite;
+//         }
+//       `}</style>
+//       <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex flex-col items-center justify-center p-4">
+//         <h1 className="text-6xl font-extrabold mb-8 text-center fade-in">
+//           <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+//             Welcome to Super XO
+//           </span>
+//         </h1>
+
+//         <div
+//           className="text-2xl text-gray-700 mb-12 text-center fade-in"
+//           style={{ animationDelay: "0.2s" }}
+//         >
+//           Experience the classic game with a twist!
+//         </div>
+
+//         <Link href="/xo">
+//           <div className="float" style={{ animationDelay: "0.4s" }}>
+//             <button
+//               // onClick={onStartGame}
+//               className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full text-xl transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg"
+//             >
+//               Go to XO Game
+//             </button>
+//           </div>
+//         </Link>
+
+//         <div
+//           className="mt-16 text-gray-600 text-center fade-in"
+//           style={{ animationDelay: "0.6s" }}
+//         >
+//           <p>
+//             Set your move limit, challenge your friends, and enjoy the game!
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default page;
 "use client";
-import Head from 'next/head';
-import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import React from "react";
 
-const XOGame = () => {
-  const [board, setBoard] = useState(Array(9).fill(""));
-  const [currentPlayer, setCurrentPlayer] = useState("X");
-  const [movesX, setMovesX] = useState([]);
-  const [movesO, setMovesO] = useState([]);
-  const [winner, setWinner] = useState(null);
-  const [winningLine, setWinningLine] = useState(null);
-  const [moveLimit, setMoveLimit] = useState(4);
-  const [playerX, setPlayerX] = useState("Player X");
-  const [playerO, setPlayerO] = useState("Player O");
-  const [scoreX, setScoreX] = useState(0);
-  const [scoreO, setScoreO] = useState(0);
-  const [showVictoryAnimation, setShowVictoryAnimation] = useState(false);
-  const [lastMove, setLastMove] = useState(null);
-  const [isTie, setIsTie] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const audioRef = useRef<any>(null);
-  const winningCombos: any = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8], // Rows
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8], // Columns
-    [0, 4, 8],
-    [2, 4, 6], // Diagonals
-  ];
-
-  useEffect(() => {
-    audioRef.current = new Audio("./game.mp3");
-    audioRef.current.loop = true;
-  }, []);
-
-  const toggleMusic = () => {
-    if (isMusicPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsMusicPlaying(!isMusicPlaying);
-  };
-
-  useEffect(() => {
-    checkWinner();
-  }, [board]);
-
-  const makeMove = (position: any) => {
-    if (board[position] !== "" || winner || isTie) return;
-
-    const newBoard = [...board];
-    const currentMoves: any = currentPlayer === "X" ? [...movesX] : [...movesO];
-
-    if (currentMoves.length === moveLimit) {
-      const oldestMove: any = currentMoves.shift();
-      newBoard[oldestMove] = "";
-    }
-
-    newBoard[position] = currentPlayer;
-    currentMoves.push(position);
-
-    setBoard(newBoard);
-    setLastMove(position);
-    if (currentPlayer === "X") {
-      setMovesX(currentMoves);
-    } else {
-      setMovesO(currentMoves);
-    }
-    setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
-  };
-
-  const checkWinner = () => {
-    for (let combo of winningCombos) {
-      if (
-        board[combo[0]] &&
-        board[combo[0]] === board[combo[1]] &&
-        board[combo[0]] === board[combo[2]]
-      ) {
-        setWinner(board[combo[0]]);
-        setWinningLine(combo);
-        updateScore(board[combo[0]]);
-        setShowVictoryAnimation(true);
-        vibrateDevice();
-        setTimeout(() => {
-          setShowVictoryAnimation(false);
-        }, 3000);
-        return;
-      }
-    }
-
-    // Check for tie
-    if (!board.includes("") && !winner) {
-      setIsTie(true);
-      setShowVictoryAnimation(true);
-      vibrateDevice();
-      setTimeout(() => {
-        setShowVictoryAnimation(false);
-      }, 3000);
-    }
-  };
-
-  const updateScore = (winner: any) => {
-    if (winner === "X") {
-      setScoreX(scoreX + 1);
-    } else {
-      setScoreO(scoreO + 1);
-    }
-  };
-
-  const resetGame = () => {
-    setBoard(Array(9).fill(""));
-    setCurrentPlayer("X");
-    setMovesX([]);
-    setMovesO([]);
-    setWinner(null);
-    setWinningLine(null);
-    setShowVictoryAnimation(false);
-    setLastMove(null);
-    setIsTie(false);
-  };
-
-  const handleMoveLimitChange = (limit: any) => {
-    setMoveLimit(limit);
-    resetGame();
-  };
-
-  const vibrateDevice = () => {
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
-    }
-  };
-
-  const renderBoard = () => {
-    return (
-      <div className="relative grid grid-cols-3 gap-4 mb-6">
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
-          <button
-            key={index}
-            className={`w-28 h-28 text-5xl font-bold flex items-center justify-center rounded-lg transition-all duration-300 ${
-              board[index] === "X"
-                ? "bg-indigo-500 text-white"
-                : board[index] === "O"
-                ? "bg-purple-500 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
-            } ${index === lastMove ? "flip" : ""}`}
-            onClick={() => makeMove(index)}
-            disabled={winner !== null || isTie}
-          >
-            {board[index]}
-          </button>
-        ))}
-        {winningLine && <WinningLine combo={winningLine} />}
-      </div>
-    );
-  };
-
-  const WinningLine = ({ combo }: { combo: any }) => {
-    const getLineStyle = () => {
-      const start = combo[0];
-      const end = combo[2];
-      const startPos = getPosition(start);
-      const endPos = getPosition(end);
-
-      const dx = endPos.x - startPos.x;
-      const dy = endPos.y - startPos.y;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-      return {
-        width: `${length}px`,
-        transform: `rotate(${angle}deg)`,
-        top: `${startPos.y + 56}px`,
-        left: `${startPos.x + 56}px`,
-        transformOrigin: "top left",
-      };
-    };
-
-    const getPosition = (index: any) => {
-      const row = Math.floor(index / 3);
-      const col = index % 3;
-      return {
-        x: col * 128,
-        y: row * 128,
-      };
-    };
-
-    return (
-      <div className="absolute bg-yellow-400 h-2" style={getLineStyle()}></div>
-    );
-  };
-
+const LandingPage = () => {
   return (
-    <>
-      <Head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Super XO - An Exciting Twist on the Classic Tic-Tac-Toe Game</title>
-        <meta name="description" content="Play Super XO, an exciting variation of Tic-Tac-Toe with limited moves. Challenge friends or play against the computer in this strategic board game!" />
-        <meta name="keywords" content="Super XO, Tic-Tac-Toe, board game, strategy game, online game, multiplayer game" />
-        <meta name="author" content="Your Name or Company Name" />
-
-        <link rel="icon" href="/favicon.ico" />
-
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://yourdomain.com/super-xo" />
-        <meta property="og:title" content="Super XO - An Exciting Twist on Tic-Tac-Toe" />
-        <meta property="og:description" content="Challenge your friends to a game of Super XO, the strategic Tic-Tac-Toe variant with limited moves. Play now and test your skills!" />
-        <meta property="og:image" content="https://yourdomain.com/super-xo-preview.jpg" />
-
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://yourdomain.com/super-xo" />
-        <meta name="twitter:title" content="Super XO - Strategic Tic-Tac-Toe with a Twist" />
-        <meta name="twitter:description" content="Experience Super XO, a challenging variation of Tic-Tac-Toe. Limited moves add a new layer of strategy. Play online now!" />
-        <meta name="twitter:image" content="https://yourdomain.com/super-xo-preview.jpg" />
-
-        <link rel="canonical" href="https://yourdomain.com/super-xo" />
-
-        <meta name="robots" content="index, follow" />
-        <meta name="language" content="English" />
-        <meta name="revisit-after" content="7 days" />
-        <meta name="theme-color" content="#4F46E5" />
-      </Head>
-   
-    <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 p-4 font-sans flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex flex-col items-center justify-center p-4 sm:p-8 md:p-16">
       <style jsx>{`
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-20px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-        @keyframes pulse {
+        @keyframes float {
           0% {
-            transform: scale(1);
+            transform: translateY(0px);
           }
           50% {
-            transform: scale(1.05);
+            transform: translateY(-10px);
           }
           100% {
-            transform: scale(1);
-          }
-        }
-        @keyframes flip {
-          0% {
-            transform: perspective(400px) rotateY(0);
-          }
-          100% {
-            transform: perspective(400px) rotateY(360deg);
-          }
-        }
-        @keyframes victory {
-          0% {
-            transform: scale(0.8);
-            opacity: 0;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-        @keyframes textAnimation {
-          0% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.1);
-          }
-          100% {
-            transform: scale(1);
+            transform: translateY(0px);
           }
         }
         .fade-in {
-          animation: fadeIn 0.5s ease-out;
+          animation: fadeIn 1s ease-out;
         }
-        .pulse {
-          animation: pulse 2s infinite;
-        }
-        .flip {
-          animation: flip 0.6s ease-in-out;
-        }
-        .victory-animation {
-          animation: victory 0.5s ease-out;
-        }
-        .text-animation {
-          animation: textAnimation 2s ease-in-out infinite;
+        .float {
+          animation: float 3s ease-in-out infinite;
         }
       `}</style>
 
-      <div className="flex w-full max-w-7xl h-full max-h-[800px]">
-        {/* Left column for inputs, score, and current player info */}
-        <div className="w-1/3 pr-4 space-y-4 overflow-y-auto mt-16">
-          <div
-            className="bg-white rounded-lg p-4 shadow-lg fade-in"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="justify-between flex flex-row">
-              <h2 className="text-xl font-bold mb-3 text-gray-800">
-                Game Settings
-              </h2>
-              <button
-                onClick={toggleMusic}
-                className="text-3xl focus:outline-none"
-              >
-                {isMusicPlaying ? "🔊" : "🔇"}
-              </button>
-            </div>
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 sm:mb-8 text-center fade-in">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+          Welcome to Super XO
+        </span>
+      </h1>
 
-            <div className="mb-3">
-              <label
-                htmlFor="playerX"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Player X:
-              </label>
-              <input
-                type="text"
-                id="playerX"
-                value={playerX}
-                onChange={(e) => setPlayerX(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-gray-900"
-              />
-            </div>
-            <div className="mb-3">
-              <label
-                htmlFor="playerO"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Player O:
-              </label>
-              <input
-                type="text"
-                id="playerO"
-                value={playerO}
-                onChange={(e) => setPlayerO(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-gray-900"
-              />
-            </div>
-            <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Move Limit:
-              </label>
-              <div className="flex rounded-md overflow-hidden">
-                {[3, 4, 5].map((limit) => (
-                  <button
-                    key={limit}
-                    className={`flex-1 py-2 text-sm font-medium ${
-                      moveLimit === limit
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } transition-colors duration-200`}
-                    onClick={() => handleMoveLimitChange(limit)}
-                  >
-                    {limit}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="bg-white rounded-lg p-4 shadow-lg fade-in"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <h2 className="text-xl font-bold mb-3 text-gray-800">Game Info</h2>
-            <div className="text-sm text-gray-600">
-              <div className="font-semibold text-indigo-800">
-                {playerX} Moves: {movesX.join(", ")}
-              </div>
-              <div className="font-semibold text-purple-800">
-                {playerO} Moves: {movesO.join(", ")}
-              </div>
-            </div>
-          </div>
-
-          {/* Score table */}
-          <div
-            className="bg-white rounded-lg p-4 shadow-lg fade-in"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <h2 className="text-xl font-bold mb-3 text-gray-800">
-              Score Board
-            </h2>
-            <div className="flex justify-between items-center mb-2 bg-indigo-100 p-2 rounded-md">
-              <span className="font-medium text-indigo-800">{playerX}</span>
-              <span className="text-2xl font-bold text-indigo-600 pulse">
-                {scoreX}
-              </span>
-            </div>
-            <div className="flex justify-between items-center bg-purple-100 p-2 rounded-md">
-              <span className="font-medium text-purple-800">{playerO}</span>
-              <span className="text-2xl font-bold text-purple-600 pulse">
-                {scoreO}
-              </span>
-            </div>
-          </div>
+      <div
+        className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-8 sm:mb-10 md:mb-12 text-center fade-in max-w-md sm:max-w-lg md:max-w-xl"
+        style={{ animationDelay: "0.2s" }}
+      >
+        Experience the classic game with a twist! Challenge your friends and
+        test your strategy.
+      </div>
+      <Link href="/xo">
+        <div className="float" style={{ animationDelay: "0.4s" }}>
+          <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full text-lg sm:text-xl transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg">
+            Go to XO Game
+          </button>
         </div>
+      </Link>
 
-        {/* Right column for game board */}
-        <div className="w-2/3 flex items-center justify-center">
-          <div
-            className="bg-white rounded-lg p-8 shadow-lg fade-in"
-            style={{ animationDelay: "0.6s" }}
-          >
-            {/* SUPER XO title inside the game board */}
-            <h1 className="text-5xl font-extrabold mb-8 text-center fade-in">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
-                SUPER XO
-              </span>
-            </h1>
-
-            {renderBoard()}
-
-            {/* Current player display */}
-            <div className="text-center mb-4">
-              <span className="text-xl font-bold text-gray-800">
-                {!winner && !isTie
-                  ? `Current Player: ${
-                      currentPlayer === "X" ? playerX : playerO
-                    }`
-                  : ""}
-              </span>
-            </div>
-
-            <div className="text-center">
-              <button
-                className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                onClick={resetGame}
-              >
-                Reset Game
-              </button>
-            </div>
-          </div>
-        </div>
+      <div
+        className="mt-12 sm:mt-16 text-gray-600 text-center fade-in max-w-md sm:max-w-lg md:max-w-xl"
+        style={{ animationDelay: "0.6s" }}
+      >
+        <p className="text-sm sm:text-base">
+          Set your move limit, challenge your friends, and enjoy the game!
+        </p>
       </div>
 
-      {showVictoryAnimation && (
-        <div className="victory-animation fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center bg-black bg-opacity-70">
-          <div className="text-center">
-            <div className="text-6xl font-bold text-white mb-4 text-animation">
-              {isTie
-                ? "It's a Tie!"
-                : `${winner === "X" ? playerX : playerO} Wins!`}
-            </div>
-            <div className="text-8xl text-animation">{isTie ? "🤝" : "🏆"}</div>
-          </div>
-        </div>
-      )}
+      <div
+        className="mt-8 sm:mt-12 text-xs sm:text-sm text-gray-500 fade-in"
+        style={{ animationDelay: "0.8s" }}
+      >
+        <p>© 2024 Super XO. All rights reserved.</p>
+      </div>
     </div>
-    </>
   );
 };
 
-export default XOGame;
+export default LandingPage;
