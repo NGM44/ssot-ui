@@ -343,10 +343,10 @@ const XOGame = () => {
               </h2>
               <div className="text-sm text-gray-600">
                 <div className="font-semibold text-indigo-800">
-                  {playerX} Moves: {movesX.join(", ")}
+                  {playerX} Moves: {movesX.map(val => val + 1).join(", ")}
                 </div>
                 <div className="font-semibold text-purple-800">
-                  {playerO} Moves: {movesO.join(", ")}
+                  {playerO} Moves: {movesO.map(val => val + 1).join(", ")}
                 </div>
               </div>
             </div>
