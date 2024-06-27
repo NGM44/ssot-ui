@@ -414,13 +414,16 @@ const XOGame = () => {
             className="bg-white sm:hidden block rounded-lg p-4 shadow-lg fade-in"
             style={{ animationDelay: "0.3s" }}
           >
-            <h2 className="text-xl font-bold mb-3 text-gray-800">Game Info</h2>
+            <h2 className="text-xl font-bold text-gray-800">Move History</h2>
+            <p className="text-xs font-semibold py-0 my-0 text-gray-600 pb-2">
+              Number represents the boxes in board
+            </p>
             <div className="text-sm text-gray-600">
               <div className="font-semibold text-indigo-800">
-                {playerX} Moves: {movesX.join(", ")}
+                {playerX} Moves: {movesX.map((val) => val + 1).join(", ")}
               </div>
               <div className="font-semibold text-purple-800">
-                {playerO} Moves: {movesO.join(", ")}
+                {playerO} Moves: {movesO.map((val) => val + 1).join(", ")}
               </div>
             </div>
           </div>
