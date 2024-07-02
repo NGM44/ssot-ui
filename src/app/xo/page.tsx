@@ -518,9 +518,9 @@ const XOGame = () => {
               </div>
             </div>
             <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                 Game Mode:
-              </label>
+              </label> */}
               <div className="flex rounded-md overflow-hidden">
                 <button
                   className={`flex-1 py-2 text-sm font-medium ${
@@ -546,9 +546,9 @@ const XOGame = () => {
             </div>
             {gameMode === "ai" && (
               <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                   AI Difficulty:
-                </label>
+                </label> */}
                 <div className="flex rounded-md overflow-hidden">
                   {["easy", "medium", "hard"].map((difficulty) => (
                     <button
@@ -643,10 +643,10 @@ const XOGame = () => {
               </div>
             </div>
           </div>
-          <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="sm:hidden">
+              {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                 Game Mode:
-              </label>
+              </label> */}
               <div className="flex rounded-md overflow-hidden">
                 <button
                   className={`flex-1 py-2 text-sm font-medium ${
@@ -671,10 +671,10 @@ const XOGame = () => {
               </div>
             </div>
             {gameMode === "ai" && (
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="sm:hidden">
+                {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                   AI Difficulty:
-                </label>
+                </label> */}
                 <div className="flex rounded-md overflow-hidden">
                   {["easy", "medium", "hard"].map((difficulty) => (
                     <button
