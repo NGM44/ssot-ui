@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const XOGame = () => {
+  const [gameMode, setGameMode] = useState("ai"); // "human" or "ai"
+  const [aiDifficulty, setAiDifficulty] = useState("medium");
   const [board, setBoard] = useState(Array(9).fill(""));
   const [currentPlayer, setCurrentPlayer] = useState("X");
   const [movesX, setMovesX] = useState([]);
@@ -18,6 +20,7 @@ const XOGame = () => {
   const [isTie, setIsTie] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const audioRef = useRef<any>(null);
+  const [moveOpacities, setMoveOpacities] = useState(Array(9).fill(1));
   const winningCombos: any = [
     [0, 1, 2],
     [3, 4, 5],
@@ -34,6 +37,25 @@ const XOGame = () => {
     audioRef.current.loop = true;
   }, []);
 
+  const updateMoveOpacities = () => {
+    const newOpacities = Array(9).fill(1);
+    const xMoves = [...movesX];
+    const oMoves = [...movesO];
+  
+    const updateOpacityForPlayer = (moves:any) => {
+      moves.forEach((move:any, index:any) => {
+        const opacityStep = 0.2;
+        const minOpacity = 0.1;
+        const opacity = Math.max(1 - (moves.length - 1 - index) * opacityStep, minOpacity);
+        newOpacities[move] = opacity;
+      });
+    };
+  
+    updateOpacityForPlayer(xMoves);
+    updateOpacityForPlayer(oMoves);
+  
+    setMoveOpacities(newOpacities);
+  };
   const toggleMusic = () => {
     if (isMusicPlaying) {
       audioRef.current.pause();
@@ -43,18 +65,121 @@ const XOGame = () => {
     setIsMusicPlaying(!isMusicPlaying);
   };
 
+  // useEffect(() => {
+  //   checkWinner();
+  //   updateMoveOpacities();
+  //   if (gameMode === "ai" && currentPlayer === "O" && !winner && !isTie) {
+  //     setTimeout(() => makeAIMove(), 500);
+  //   }
+  // }, [board, currentPlayer]);
   useEffect(() => {
     checkWinner();
-  }, [board]);
+    updateMoveOpacities();
+    if (gameMode === "ai" && currentPlayer === "O" && !winner && !isTie) {
+      setTimeout(() => makeAIMove(), 500);
+    }
+  }, [board, currentPlayer]);
 
+  const makeAIMove = () => {
+    let move;
+    switch (aiDifficulty) {
+      case "easy":
+        move = Math.random() < 0.5 ? makeSmartMove() : makeRandomMove();
+        break;
+      case "medium":
+        move = Math.random() < 0.9 ? makeSmartMove() : makeRandomMove();
+        break;
+      case "hard":
+        move = makeSmartMove();
+        break;
+      default:
+        move = makeRandomMove();
+    }
+    if (move !== null) {
+      makeMove(move);
+    }
+  };
+
+  const makeRandomMove = () => {
+    const availableMoves = board.reduce((acc, cell, index) => {
+      if (cell === "") acc.push(index);
+      return acc;
+    }, []);
+    return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+  };
+
+  const makeSmartMove = () => {
+    // Check for winning move
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === "") {
+        const testBoard = [...board];
+        testBoard[i] = "O";
+        if (checkWinningMove(testBoard, "O")) return i;
+      }
+    }
+
+    // Block player's winning move
+    for (let i = 0; i < 9; i++) {
+      if (board[i] === "") {
+        const testBoard = [...board];
+        testBoard[i] = "X";
+        if (checkWinningMove(testBoard, "X")) return i;
+      }
+    }
+
+    // Choose center if available
+    if (board[4] === "") return 4;
+
+    // Choose a corner
+    const corners = [0, 2, 6, 8];
+    const availableCorners = corners.filter((i) => board[i] === "");
+    if (availableCorners.length > 0) {
+      return availableCorners[
+        Math.floor(Math.random() * availableCorners.length)
+      ];
+    }
+
+    // Choose any available move
+    return makeRandomMove();
+  };
+
+  const checkWinningMove = (board: any, player: any) => {
+    return winningCombos.some((combo: any) =>
+      combo.every((index: any) => board[index] === player)
+    );
+  };
+
+  // const makeMove = (position: any) => {
+  //   if (board[position] !== "" || winner || isTie) return;
+
+  //   const newBoard = [...board];
+  //   const currentMoves: any = currentPlayer === "X" ? [...movesX] : [...movesO];
+
+  //   if (currentMoves.length === moveLimit) {
+  //     const oldestMove: any = currentMoves.shift();
+  //     newBoard[oldestMove] = "";
+  //   }
+
+  //   newBoard[position] = currentPlayer;
+  //   currentMoves.push(position);
+
+  //   setBoard(newBoard);
+  //   setLastMove(position);
+  //   if (currentPlayer === "X") {
+  //     setMovesX(currentMoves);
+  //   } else {
+  //     setMovesO(currentMoves);
+  //   }
+  //   setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+  // };
   const makeMove = (position: any) => {
     if (board[position] !== "" || winner || isTie) return;
 
     const newBoard = [...board];
     const currentMoves: any = currentPlayer === "X" ? [...movesX] : [...movesO];
 
-    if (currentMoves.length === moveLimit) {
-      const oldestMove: any = currentMoves.shift();
+    if (currentMoves.length >= moveLimit) {
+      const oldestMove = currentMoves.shift();
       newBoard[oldestMove] = "";
     }
 
@@ -69,6 +194,9 @@ const XOGame = () => {
       setMovesO(currentMoves);
     }
     setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+
+    // Update opacities immediately after the move
+    updateMoveOpacities();
   };
 
   const checkWinner = () => {
@@ -132,13 +260,43 @@ const XOGame = () => {
     }
   };
 
+  // const renderBoard = () => {
+  //   return (
+  //     <div className="relative grid grid-cols-3 gap-4 mb-6">
+  //       {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
+  //         <button
+  //           style={{ opacity: moveOpacities[index] }}
+  //           key={index}
+  //           className={`lg:w-28 lg:h-28 md:w-24 md:h-24 sm:w-20 sm:h-20  w-24 h-24 text-5xl font-bold flex items-center justify-center rounded-lg transition-all duration-300 ${
+  //             board[index] === "X"
+  //               ? "bg-indigo-500 text-white"
+  //               : board[index] === "O"
+  //               ? "bg-purple-500 text-white"
+  //               : "bg-gray-200 hover:bg-gray-300"
+  //           } ${index === lastMove ? "flip" : ""}`}
+  //           onClick={() => makeMove(index)}
+  //           disabled={
+  //             winner !== null ||
+  //             isTie ||
+  //             (gameMode === "ai" && currentPlayer === "O")
+  //           }
+  //         >
+  //           {board[index]}
+  //         </button>
+  //       ))}
+  //       {winningLine && <WinningLine combo={winningLine} />}
+  //     </div>
+  //   );
+  // };
+
   const renderBoard = () => {
     return (
       <div className="relative grid grid-cols-3 gap-4 mb-6">
         {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
           <button
             key={index}
-            className={`lg:w-28 lg:h-28 md:w-24 md:h-24 sm:w-20 sm:h-20  w-24 h-24 text-5xl font-bold flex items-center justify-center rounded-lg transition-all duration-300 ${
+            style={{ opacity: moveOpacities[index] }}
+            className={`lg:w-28 lg:h-28 md:w-24 md:h-24 sm:w-20 sm:h-20 w-24 h-24 text-5xl font-bold flex items-center justify-center rounded-lg transition-all duration-300 ${
               board[index] === "X"
                 ? "bg-indigo-500 text-white"
                 : board[index] === "O"
@@ -146,7 +304,7 @@ const XOGame = () => {
                 : "bg-gray-200 hover:bg-gray-300"
             } ${index === lastMove ? "flip" : ""}`}
             onClick={() => makeMove(index)}
-            disabled={winner !== null || isTie}
+            disabled={winner !== null || isTie || (gameMode === "ai" && currentPlayer === "O")}
           >
             {board[index]}
           </button>
@@ -154,7 +312,32 @@ const XOGame = () => {
         {winningLine && <WinningLine combo={winningLine} />}
       </div>
     );
-  };
+  };  
+
+  // const renderBoard = () => {
+  //   return (
+  //     <div className="relative grid grid-cols-3 gap-4 mb-6">
+  //       {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
+  //         <button
+  //           key={index}
+  //           style={{ opacity: moveOpacities[index] }}
+  //           className={`lg:w-28 lg:h-28 md:w-24 md:h-24 sm:w-20 sm:h-20 w-24 h-24 text-5xl font-bold flex items-center justify-center rounded-lg transition-all duration-300 ${
+  //             board[index] === "X"
+  //               ? "bg-indigo-500 text-white"
+  //               : board[index] === "O"
+  //               ? "bg-purple-500 text-white"
+  //               : "bg-gray-200 hover:bg-gray-300"
+  //           } ${index === lastMove ? "flip" : ""}`}
+  //           onClick={() => makeMove(index)}
+  //           disabled={winner !== null || isTie || (gameMode === "ai" && currentPlayer === "O")}
+  //         >
+  //           {board[index]}
+  //         </button>
+  //       ))}
+  //       {winningLine && <WinningLine combo={winningLine} />}
+  //     </div>
+  //   );
+  // };
 
   const WinningLine = ({ combo }: { combo: any }) => {
     const getLineStyle = () => {
@@ -334,7 +517,57 @@ const XOGame = () => {
                 </div>
               </div>
             </div>
-            <div
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Game Mode:
+              </label>
+              <div className="flex rounded-md overflow-hidden">
+                <button
+                  className={`flex-1 py-2 text-sm font-medium ${
+                    gameMode === "human"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors duration-200`}
+                  onClick={() => setGameMode("human")}
+                >
+                  Human vs Human
+                </button>
+                <button
+                  className={`flex-1 py-2 text-sm font-medium ${
+                    gameMode === "ai"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors duration-200`}
+                  onClick={() => setGameMode("ai")}
+                >
+                  Human vs AI
+                </button>
+              </div>
+            </div>
+            {gameMode === "ai" && (
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  AI Difficulty:
+                </label>
+                <div className="flex rounded-md overflow-hidden">
+                  {["easy", "medium", "hard"].map((difficulty) => (
+                    <button
+                      key={difficulty}
+                      className={`flex-1 py-2 text-sm font-medium ${
+                        aiDifficulty === difficulty
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      } transition-colors duration-200`}
+                      onClick={() => setAiDifficulty(difficulty)}
+                    >
+                      {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* <div
               className="bg-white sm:block hidden rounded-lg p-4 shadow-lg fade-in"
               style={{ animationDelay: "0.3s" }}
             >
@@ -350,7 +583,7 @@ const XOGame = () => {
                   {playerO} Moves: {movesO.map((val) => val + 1).join(", ")}
                 </div>
               </div>
-            </div>
+            </div> */}
             {/* Score table */}
             <div
               className="bg-white sm:block hidden rounded-lg p-4 shadow-lg fade-in"
@@ -410,7 +643,56 @@ const XOGame = () => {
               </div>
             </div>
           </div>
-          <div
+          <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Game Mode:
+              </label>
+              <div className="flex rounded-md overflow-hidden">
+                <button
+                  className={`flex-1 py-2 text-sm font-medium ${
+                    gameMode === "human"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors duration-200`}
+                  onClick={() => setGameMode("human")}
+                >
+                  Human vs Human
+                </button>
+                <button
+                  className={`flex-1 py-2 text-sm font-medium ${
+                    gameMode === "ai"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors duration-200`}
+                  onClick={() => setGameMode("ai")}
+                >
+                  Human vs AI
+                </button>
+              </div>
+            </div>
+            {gameMode === "ai" && (
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  AI Difficulty:
+                </label>
+                <div className="flex rounded-md overflow-hidden">
+                  {["easy", "medium", "hard"].map((difficulty) => (
+                    <button
+                      key={difficulty}
+                      className={`flex-1 py-2 text-sm font-medium ${
+                        aiDifficulty === difficulty
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      } transition-colors duration-200`}
+                      onClick={() => setAiDifficulty(difficulty)}
+                    >
+                      {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          {/* <div
             className="bg-white sm:hidden block rounded-lg p-4 shadow-lg fade-in"
             style={{ animationDelay: "0.3s" }}
           >
@@ -426,7 +708,7 @@ const XOGame = () => {
                 {playerO} Moves: {movesO.map((val) => val + 1).join(", ")}
               </div>
             </div>
-          </div>
+          </div> */}
           <div
             className="bg-white sm:hidden block rounded-lg p-4 shadow-lg fade-in"
             style={{ animationDelay: "0.4s" }}
