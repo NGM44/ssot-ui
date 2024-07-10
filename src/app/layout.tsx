@@ -27,8 +27,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {children}
-        <AnimatedSignature />
-        <Analytics />
+        {/* <AnimatedSignature /> */}
+        {/* <Analytics /> */}
       </body>
     </html>
   );
