@@ -125,7 +125,7 @@ const BrutalistZomato = () => {
           </div>
         </div>
       </div>
-      <div className="flex justify-between border-t-4 border-black pt-2 text-gray-600">
+      <div className="fixed bottom-0 left-0 w-full px-8 bg-white flex justify-between border-t-4 border-black pt-2 text-gray-600">
         <div className="text-center">
           <Truck className="mx-auto text-red-600" />
           <div className="font-bold text-red-600">Delivery</div>
