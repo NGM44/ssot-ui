@@ -46,7 +46,7 @@ const BrutalistZomato = () => {
         <input type="text" placeholder="Restaurant name or a dish..." className="w-full bg-transparent outline-none" />
       </div>
       <div className="border-4 border-black p-2 mb-4 bg-red-100">
-        <div className="text-center font-bold text-2xl mb-2 text-red-600">IT'S OUR 16TH BIRTHDAY!</div>
+        <div className="text-center font-bold text-2xl mb-2 text-red-600">IT&apos;S OUR 16TH BIRTHDAY!</div>
         <div className="text-center mb-2">Explore offers</div>
         <div className="flex justify-around">
           {['🍰', '☕', '🍜', '🍕', '🍔'].map((emoji, index) => (
