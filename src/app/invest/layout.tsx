@@ -1,16 +1,13 @@
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import AnimatedSignature from "./footer";
-import { Analytics } from "@vercel/analytics/react";
-import { ThemeProvider } from "next-themes";
+import "../globals.css";
+import Navigation from "./navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: {
-    default: "Super XO - An Exciting Twist on Tic-Tac-Toe",
-    template: `Super XO - An Exciting Twist on Tic-Tac-Toe`,
+    default: "Find Space",
+    template: `Find Space - An Portal For Your Real Estate Venture`,
   },
   description:
     "Challenge your friends to a game of Super XO, the strategic Tic-Tac-Toe variant with limited moves. Play now and test your skills!",
@@ -27,10 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
-        <Analytics />
+        {children}
+        {/* <AnimatedSignature /> */}
+        <Navigation />
       </body>
     </html>
   );
